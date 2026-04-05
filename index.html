@@ -1944,6 +1944,7 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 310;
+      pointer-events: none;
     }
     .tutorial-arrow {
       position: absolute;
@@ -1951,6 +1952,10 @@
       color: #f5c542;
       animation: tutArrowPulse 0.8s ease-in-out infinite;
       z-index: 310;
+      pointer-events: none;
+    }
+    .tutorial-dark-bg {
+      pointer-events: none;
     }
     @keyframes tutArrowPulse {
       0%, 100% { transform: translateY(0); opacity: 1; }
@@ -6431,7 +6436,9 @@
       tutorialStep = step;
       const overlay = document.getElementById('tutorial-overlay');
       overlay.innerHTML = '';
-      overlay.classList.add('active');
+      // Only step 5 needs pointer-events (it has a button).
+      // Steps 1-4: keep overlay pointer-events:none so touches reach game elements.
+      overlay.classList.remove('active');
 
       if (step === 1) {
         // "Orders come in!" — spawn single Teh Tarik
@@ -6536,7 +6543,7 @@
         gameState.isRunning = false;
         overlay.classList.add('active');
         overlay.innerHTML = `
-          <div class="tutorial-dark-bg" style="display:flex;align-items:center;justify-content:center">
+          <div class="tutorial-dark-bg" style="display:flex;align-items:center;justify-content:center;pointer-events:auto">
             <div class="tutorial-summary-card">
               <div>✅ Tap orders to cook</div>
               <div>✅ Follow the recipe steps</div>
