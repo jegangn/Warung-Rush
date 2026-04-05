@@ -2027,7 +2027,7 @@
     <button class="btn-text" id="btn-how-to-play">HOW TO PLAY</button>
     <div class="homescreen-hint" id="homescreen-hint">📱 Add to Home Screen for the best experience</div>
     <button class="reset-progress" id="btn-reset">Reset Progress</button>
-    <div class="version-label">v1.3</div>
+    <div class="version-label">v1.4</div>
   </div>
 
   <!-- ===== TUTORIAL SCREEN ===== -->
@@ -6463,11 +6463,25 @@
         gameState.activeOrders.push(order);
         renderQueues();
 
+        // Position arrow dynamically below the first order card
         overlay.innerHTML = `
           <div class="tutorial-dark-bg"></div>
-          <div class="tutorial-float-text" style="top:30%">Tap the order to start cooking</div>
-          <div class="tutorial-arrow" style="left:12%;top:42%">👇</div>
+          <div class="tutorial-float-text" id="tut-text-1">Tap the order to start cooking</div>
+          <div class="tutorial-arrow" id="tut-arrow-1">👇</div>
         `;
+        const tutCard = document.getElementById('order-card-' + order.id);
+        const tutArrow = document.getElementById('tut-arrow-1');
+        const tutText = document.getElementById('tut-text-1');
+        if (tutCard && tutArrow) {
+          const overlayRect = overlay.getBoundingClientRect();
+          const cardRect = tutCard.getBoundingClientRect();
+          const cardCenterX = cardRect.left - overlayRect.left + cardRect.width / 2;
+          tutArrow.style.left = (cardCenterX - 18) + 'px';
+          tutArrow.style.top = (cardRect.bottom - overlayRect.top + 4) + 'px';
+          if (tutText) {
+            tutText.style.top = (cardRect.top - overlayRect.top - 40) + 'px';
+          }
+        }
 
         // Wait for order tap
         const checkTap = setInterval(() => {
@@ -6644,15 +6658,6 @@
     }
   </script>
 
-  <!-- DEBUG: Tap target identifier — REMOVE after testing -->
-  <script>
-    document.addEventListener('click', function(e) {
-      console.log('CLICKED:', e.target.tagName, e.target.id, e.target.className);
-    }, true);
-    document.addEventListener('touchend', function(e) {
-      console.log('TOUCHEND:', e.target.tagName, e.target.id, e.target.className);
-    }, true);
-  </script>
 
 </body>
 </html>

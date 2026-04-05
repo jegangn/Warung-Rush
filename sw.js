@@ -1,4 +1,4 @@
-const CACHE_NAME = 'warung-rush-v2';
+const CACHE_NAME = 'warung-rush-v3';
 const ASSETS = [
   './',
   './index.html',
