@@ -3486,6 +3486,18 @@
 
     let saveData = SaveManager.load();
 
+    // ===== UNIVERSAL TAP HANDLER =====
+    // Adds both click and touchend listeners to fix mobile browsers
+    // where touch-action:none suppresses click events.
+    function addTap(el, handler, opts) {
+      if (!el) return;
+      el.addEventListener('click', handler, opts);
+      el.addEventListener('touchend', function(e) {
+        e.preventDefault(); // prevent ghost double-fire
+        handler.call(this, e);
+      }, opts);
+    }
+
     // ===== SCREEN STATE MACHINE =====
     let currentScreen = 'title';
     function showScreen(screenId) {
@@ -3937,7 +3949,7 @@
         }
         card.innerHTML = `<div class="level-card-number">${i + 1}</div><div class="level-card-name">${lvl.name}</div><div class="level-card-medal">${MEDAL_EMOJIS[medalIdx]}</div>${lockInfo}`;
         if (unlocked) {
-          card.addEventListener('click', () => {
+          addTap(card, () => {
             showPreLevel(i + 1);
           });
         } else {
@@ -3946,7 +3958,7 @@
           // Shop link on tier-locked levels
           const shopLink = card.querySelector('[data-shop-link]');
           if (shopLink) {
-            shopLink.addEventListener('click', (e) => {
+            addTap(shopLink, (e) => {
               e.stopPropagation();
               openShop('level-select');
             });
@@ -4003,7 +4015,7 @@
         tile.dataset.dishId = dish.id;
         const typeIcon = dish.cookType === 'instant' ? '⚡' : dish.cookType === 'cook' ? '🔥' : dish.cookType === 'custom' ? '📋' : '📋🔥';
         tile.innerHTML = `<div class="menu-dish-tile-badge">${typeIcon}</div><div class="menu-dish-tile-emoji">${dish.emoji}</div><div class="menu-dish-tile-name">${dish.name}</div>`;
-        tile.addEventListener('click', () => toggleDishSelection(dish, tile));
+        addTap(tile, () => toggleDishSelection(dish, tile));
         grid.appendChild(tile);
       });
 
@@ -4052,7 +4064,7 @@
     }
 
     // ===== NAVIGATION =====
-    btnStart.addEventListener('click', () => {
+    addTap(btnStart, () => {
       // First launch: go to tutorial
       if (!saveData.tutorialCompleted) {
         startTutorial();
@@ -4061,28 +4073,28 @@
       renderLevelSelect();
       showScreen('level-select');
     });
-    btnShopTitle.addEventListener('click', () => openShop('title'));
-    btnHowToPlay.addEventListener('click', () => startTutorial());
-    btnTutorialNext.addEventListener('click', () => { renderLevelSelect(); showScreen('level-select'); });
-    btnTutorialSkip.addEventListener('click', () => {
+    addTap(btnShopTitle, () => openShop('title'));
+    addTap(btnHowToPlay, () => startTutorial());
+    addTap(btnTutorialNext, () => { renderLevelSelect(); showScreen('level-select'); });
+    addTap(btnTutorialSkip, () => {
       saveData.tutorialCompleted = true;
       SaveManager.save(saveData);
       renderLevelSelect();
       showScreen('level-select');
     });
-    btnShopBack.addEventListener('click', () => {
+    addTap(btnShopBack, () => {
       if (shopPreviousScreen === 'level-select') {
         renderLevelSelect();
       }
       showScreen(shopPreviousScreen);
     });
-    btnShopLevels.addEventListener('click', () => openShop('level-select'));
-    btnLevelsBack.addEventListener('click', () => showScreen('title'));
-    btnPreLevelBack.addEventListener('click', () => { renderLevelSelect(); showScreen('level-select'); });
-    btnStartLevel.addEventListener('click', () => startCountdown());
+    addTap(btnShopLevels, () => openShop('level-select'));
+    addTap(btnLevelsBack, () => showScreen('title'));
+    addTap(btnPreLevelBack, () => { renderLevelSelect(); showScreen('level-select'); });
+    addTap(btnStartLevel, () => startCountdown());
     let resetConfirmTimeout = null;
     let resetConfirmActive = false;
-    btnReset.addEventListener('click', () => {
+    addTap(btnReset, () => {
       if (resetConfirmActive) {
         // Second tap within 3s — reset
         SaveManager.reset();
@@ -4100,14 +4112,14 @@
     });
 
     // Mute
-    btnMute.addEventListener('click', () => AudioManager.toggle());
+    addTap(btnMute, () => AudioManager.toggle());
     // Init mute button state
     btnMute.textContent = saveData.settings.soundEnabled ? '🔊' : '🔇';
 
     // Pause
-    btnPause.addEventListener('click', () => pauseGame());
-    btnResume.addEventListener('click', () => resumeGame());
-    btnQuit.addEventListener('click', () => {
+    addTap(btnPause, () => pauseGame());
+    addTap(btnResume, () => resumeGame());
+    addTap(btnQuit, () => {
       resumeGame();
       cleanupLevel();
       renderLevelSelect();
@@ -4115,8 +4127,8 @@
     });
 
     // Results
-    btnResultsRetry.addEventListener('click', () => startCountdown());
-    btnResultsMenu.addEventListener('click', () => showScreen('title'));
+    addTap(btnResultsRetry, () => startCountdown());
+    addTap(btnResultsMenu, () => showScreen('title'));
 
     // ===== HOMESCREEN HINT =====
     if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
@@ -4633,7 +4645,7 @@
             ${autoServeHtml}
           `;
 
-          card.addEventListener('click', (e) => {
+          addTap(card, (e) => {
             if (e.target.classList.contains('auto-serve-btn')) {
               const holdIdx = parseInt(e.target.dataset.holdingIdx);
               const oid = parseInt(e.target.dataset.orderId);
@@ -4811,7 +4823,7 @@
         btn.className = 'ingredient-btn';
         btn.innerHTML = `<div class="ingredient-btn-emoji">${step.emoji}</div><div class="ingredient-btn-label">${step.label}</div>`;
 
-        btn.addEventListener('click', () => {
+        addTap(btn, () => {
           handleIngredientTap(order.id, step, btn);
         });
 
@@ -4959,7 +4971,7 @@
         const btn = document.createElement('button');
         btn.className = 'ingredient-btn';
         btn.innerHTML = `<div class="ingredient-btn-emoji">${currentBuildStep.emoji}</div><div class="ingredient-btn-label">${currentBuildStep.label}</div>`;
-        btn.addEventListener('click', () => handleIngredientTap(order.id, currentBuildStep, btn));
+        addTap(btn, () => handleIngredientTap(order.id, currentBuildStep, btn));
         ingredientGrid.appendChild(btn);
       } else {
         // Choice step: show ALL options from the matching customSlot
@@ -4973,14 +4985,14 @@
               const btn = document.createElement('button');
               btn.className = 'ingredient-btn';
               btn.innerHTML = `<div class="ingredient-btn-emoji">${opt.emoji}</div><div class="ingredient-btn-label">${opt.label}</div>`;
-              btn.addEventListener('click', () => handleIngredientTap(order.id, opt, btn));
+              addTap(btn, () => handleIngredientTap(order.id, opt, btn));
               ingredientGrid.appendChild(btn);
             });
             // Add SKIP button
             const skipBtn = document.createElement('button');
             skipBtn.className = 'skip-btn';
             skipBtn.innerHTML = `<div class="skip-btn-emoji">⏭</div><div class="skip-btn-label">SKIP</div>`;
-            skipBtn.addEventListener('click', () => handleIngredientTap(order.id, {emoji:'❌', label: currentBuildStep.label, modifier:'SKIP', type:'choice', slotName}, skipBtn));
+            addTap(skipBtn, () => handleIngredientTap(order.id, {emoji:'❌', label: currentBuildStep.label, modifier:'SKIP', type:'choice', slotName}, skipBtn));
             ingredientGrid.appendChild(skipBtn);
           } else {
             // Show all non-SKIP options (and SKIP button if a SKIP option exists)
@@ -4994,14 +5006,14 @@
                 displayLabel = `${order.extraTapCount}/2`;
               }
               btn.innerHTML = `<div class="ingredient-btn-emoji">${opt.emoji}</div><div class="ingredient-btn-label">${displayLabel}</div>`;
-              btn.addEventListener('click', () => handleIngredientTap(order.id, opt, btn));
+              addTap(btn, () => handleIngredientTap(order.id, opt, btn));
               ingredientGrid.appendChild(btn);
             });
             if (hasSkip) {
               const skipBtn = document.createElement('button');
               skipBtn.className = 'skip-btn';
               skipBtn.innerHTML = `<div class="skip-btn-emoji">⏭</div><div class="skip-btn-label">SKIP</div>`;
-              skipBtn.addEventListener('click', () => handleIngredientTap(order.id, {emoji:'❌', label:'No ' + slotName.toLowerCase(), modifier:'SKIP', type:'choice', slotName}, skipBtn));
+              addTap(skipBtn, () => handleIngredientTap(order.id, {emoji:'❌', label:'No ' + slotName.toLowerCase(), modifier:'SKIP', type:'choice', slotName}, skipBtn));
               ingredientGrid.appendChild(skipBtn);
             }
           }
@@ -5232,7 +5244,7 @@
       updateHUD();
     }
 
-    btnServe.addEventListener('click', () => {
+    addTap(btnServe, () => {
       const order = gameState.activeOrders.find(o => o.id === gameState.selectedOrderId);
       if (!order) return;
 
@@ -5258,7 +5270,7 @@
     });
 
     // ===== START COOKING BUTTON =====
-    btnStartCooking.addEventListener('click', () => {
+    addTap(btnStartCooking, () => {
       if (btnStartCooking.classList.contains('disabled')) {
         const centreRect = playCentre.getBoundingClientRect();
         const playRect = document.getElementById('screen-playing').getBoundingClientRect();
@@ -5428,15 +5440,15 @@
             <button class="cooking-slot-pull disabled" data-slot="${i}">Not ready</button>
             <button class="cooking-slot-trash" data-slot="${i}">🗑️</button>
           `;
-          el.querySelector('.cooking-slot-pull').addEventListener('click', (e) => {
+          addTap(el.querySelector('.cooking-slot-pull'), (e) => {
             e.stopPropagation();
             pullFromCooking(parseInt(e.target.dataset.slot));
           });
-          el.querySelector('.cooking-slot-trash').addEventListener('click', (e) => {
+          addTap(el.querySelector('.cooking-slot-trash'), (e) => {
             e.stopPropagation();
             trashCookingSlot(parseInt(e.target.dataset.slot));
           });
-          el.addEventListener('click', () => {
+          addTap(el, () => {
             // Toggle trash button visibility
             slot.showTrash = !slot.showTrash;
             el.classList.toggle('show-trash', slot.showTrash);
@@ -5469,7 +5481,7 @@
     }
 
     // ===== TRASH MECHANIC =====
-    btnTrash.addEventListener('click', () => {
+    addTap(btnTrash, () => {
       const order = gameState.activeOrders.find(o => o.id === gameState.selectedOrderId);
       if (!order) return;
 
@@ -5534,7 +5546,7 @@
           el.className = 'holding-slot empty';
           el.innerHTML = '<div class="holding-slot-label">+ PREP</div>';
           el.dataset.slotIdx = i;
-          el.addEventListener('click', (e) => {
+          addTap(el, (e) => {
             openHoldingMiniMenu(parseInt(el.dataset.slotIdx), el);
           });
           holdingArea.appendChild(el);
@@ -5565,7 +5577,7 @@
         const item = document.createElement('div');
         item.className = 'holding-mini-item';
         item.innerHTML = `${dish.emoji} ${dish.name}`;
-        item.addEventListener('click', (e) => {
+        addTap(item, (e) => {
           e.stopPropagation();
           startHoldingPrep(slotIdx, dish);
           closeHoldingMiniMenu();
@@ -5576,9 +5588,10 @@
       slotEl.appendChild(menu);
       holdingMiniMenuOpen = slotIdx;
 
-      // Close on outside click
+      // Close on outside click/touch
       setTimeout(() => {
         document.addEventListener('click', closeHoldingMiniMenuHandler, { once: true });
+        document.addEventListener('touchend', closeHoldingMiniMenuHandler, { once: true });
       }, 10);
     }
 
@@ -5973,11 +5986,14 @@
           ${isUnlocked
             ? '<div class="tier-card-cost unlocked-text">UNLOCKED ✅</div>'
             : `<div class="tier-card-cost">RM ${tu.cost}</div>
-               <button class="tier-card-btn" ${canAfford ? '' : 'disabled'} onclick="purchaseTier(${tu.tier}, ${tu.cost})">UNLOCK</button>`
+               <button class="tier-card-btn" ${canAfford ? '' : 'disabled'} data-tier="${tu.tier}" data-cost="${tu.cost}">UNLOCK</button>`
           }
         </div>`;
       });
       content.innerHTML = html;
+      content.querySelectorAll('.tier-card-btn').forEach(btn => {
+        addTap(btn, () => purchaseTier(parseInt(btn.dataset.tier), parseInt(btn.dataset.cost)));
+      });
     }
 
     function renderUpgradesTab() {
@@ -6002,12 +6018,15 @@
             ${isMaxed
               ? '<span class="upgrade-max-badge">MAX</span><span></span>'
               : `<span class="upgrade-card-cost">RM ${nextCost}</span>
-                 <button class="upgrade-card-btn" ${canAfford ? '' : 'disabled'} onclick="purchaseUpgrade('${upg.id}', ${nextCost})">UPGRADE</button>`
+                 <button class="upgrade-card-btn" ${canAfford ? '' : 'disabled'} data-upg-id="${upg.id}" data-cost="${nextCost}">UPGRADE</button>`
             }
           </div>
         </div>`;
       });
       content.innerHTML = html;
+      content.querySelectorAll('.upgrade-card-btn').forEach(btn => {
+        addTap(btn, () => purchaseUpgrade(btn.dataset.upgId, parseInt(btn.dataset.cost)));
+      });
     }
 
     function purchaseTier(tier, cost) {
@@ -6036,7 +6055,7 @@
 
     // Shop tab switching
     document.querySelectorAll('.shop-tab:not(.disabled)').forEach(tab => {
-      tab.addEventListener('click', () => {
+      addTap(tab, () => {
         activeShopTab = tab.dataset.shopTab;
         renderShop();
       });
@@ -6223,7 +6242,7 @@
       btn.className = 'hazard-fix-btn';
       btn.id = 'hazard-fix-' + hazard.type;
       btn.innerHTML = '🔧<span>FIX</span>';
-      btn.addEventListener('click', (e) => {
+      addTap(btn, (e) => {
         e.stopPropagation();
         openFixOverlay(hazard);
       });
@@ -6246,7 +6265,7 @@
         btn.className = 'fix-step-btn';
         btn.textContent = emoji;
         if (idx === 0) btn.classList.add('active');
-        btn.addEventListener('click', (e) => {
+        addTap(btn, (e) => {
           e.stopPropagation();
           if (lockout) return;
           if (idx === currentStep) {
@@ -6516,7 +6535,7 @@
             </div>
           </div>
         `;
-        document.getElementById('btn-tut-start').addEventListener('click', () => {
+        addTap(document.getElementById('btn-tut-start'), () => {
           tutorialActive = false;
           tutorialStep = 0;
           overlay.innerHTML = '';
