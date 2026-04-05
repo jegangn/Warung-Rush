@@ -32,6 +32,8 @@
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
+    }
+    html {
       touch-action: manipulation;
     }
     html, body {
@@ -69,6 +71,14 @@
       justify-content: center;
       gap: 12px;
       background: #1a0e0a;
+    }
+    .version-label {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 10px;
+      color: #8a6e52;
     }
     .title-text {
       font-family: 'Fredoka', sans-serif;
@@ -196,7 +206,6 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
-      touch-action: pan-y;
     }
     .level-select-header {
       font-family: 'Fredoka', sans-serif;
@@ -251,7 +260,6 @@
       padding: 20px;
       gap: 16px;
       background: #1a0e0a;
-      touch-action: pan-y;
     }
     .shop-header {
       font-family: 'Fredoka', sans-serif;
@@ -303,7 +311,6 @@
       max-width: 700px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      touch-action: pan-y;
       padding: 12px;
     }
     .shop-tab.disabled {
@@ -516,7 +523,6 @@
       flex-direction: row;
       background: #1a0e0a;
       position: relative;
-      touch-action: manipulation;
     }
 
     /* ===== HUD ===== */
@@ -1712,7 +1718,6 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
-      touch-action: pan-y;
       padding: 16px;
     }
     .menu-select-title {
@@ -2022,6 +2027,7 @@
     <button class="btn-text" id="btn-how-to-play">HOW TO PLAY</button>
     <div class="homescreen-hint" id="homescreen-hint">📱 Add to Home Screen for the best experience</div>
     <button class="reset-progress" id="btn-reset">Reset Progress</button>
+    <div class="version-label">v1.3</div>
   </div>
 
   <!-- ===== TUTORIAL SCREEN ===== -->
@@ -6636,6 +6642,16 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
+  </script>
+
+  <!-- DEBUG: Tap target identifier — REMOVE after testing -->
+  <script>
+    document.addEventListener('click', function(e) {
+      console.log('CLICKED:', e.target.tagName, e.target.id, e.target.className);
+    }, true);
+    document.addEventListener('touchend', function(e) {
+      console.log('TOUCHEND:', e.target.tagName, e.target.id, e.target.className);
+    }, true);
   </script>
 
 </body>
