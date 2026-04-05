@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate Warung Rush Icons</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a0e0a;
+      color: #fef3e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      gap: 30px;
+    }
+    h1 { color: #f5c542; }
+    .icon-row {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    canvas {
+      border: 2px solid #3d2218;
+      border-radius: 8px;
+    }
+    a {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(180deg, #f5c542, #e8842a);
+      color: #1a0e0a;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    a:hover { opacity: 0.9; }
+    p { color: #c4a882; }
+  </style>
+</head>
+<body>
+  <h1>Warung Rush Icon Generator</h1>
+  <p>Click each download link to save the icon, then place all 3 files in the <code>icons/</code> folder.</p>
+  <div class="icon-row">
+    <div class="icon-item">
+      <canvas id="canvas-512" width="512" height="512"></canvas>
+      <a id="dl-512" download="icon-512.png">Download icon-512.png</a>
+    </div>
+    <div class="icon-item">
+      <canvas id="canvas-192" width="192" height="192"></canvas>
+      <a id="dl-192" download="icon-192.png">Download icon-192.png</a>
+    </div>
+    <div class="icon-item">
+      <canvas id="canvas-180" width="180" height="180"></canvas>
+      <a id="dl-180" download="apple-touch-icon.png">Download apple-touch-icon.png</a>
+    </div>
+  </div>
+
+  <script>
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      const r = size * 0.15; // corner radius
+
+      // Rounded square background
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(size - r, 0);
+      ctx.quadraticCurveTo(size, 0, size, r);
+      ctx.lineTo(size, size - r);
+      ctx.quadraticCurveTo(size, size, size - r, size);
+      ctx.lineTo(r, size);
+      ctx.quadraticCurveTo(0, size, 0, size - r);
+      ctx.lineTo(0, r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.closePath();
+
+      // Fill
+      ctx.fillStyle = '#2d1810';
+      ctx.fill();
+
+      // Border
+      ctx.strokeStyle = '#f5c542';
+      ctx.lineWidth = size * 0.02;
+      ctx.stroke();
+
+      // Truck emoji
+      const emojiSize = size * 0.35;
+      ctx.font = `${emojiSize}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('\u{1F69A}', size / 2, size * 0.38);
+
+      // "WR" text
+      const textSize = size * 0.18;
+      ctx.font = `bold ${textSize}px Arial, sans-serif`;
+      ctx.fillStyle = '#f5c542';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('WR', size / 2, size * 0.72);
+    }
+
+    const sizes = [512, 192, 180];
+    const filenames = ['icon-512.png', 'icon-192.png', 'apple-touch-icon.png'];
+
+    sizes.forEach((size, i) => {
+      const canvas = document.getElementById(`canvas-${size}`);
+      drawIcon(canvas, size);
+      const link = document.getElementById(`dl-${size}`);
+      link.href = canvas.toDataURL('image/png');
+    });
+  </script>
+</body>
+</html>
