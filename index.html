@@ -2027,7 +2027,7 @@
     <button class="btn-text" id="btn-how-to-play">HOW TO PLAY</button>
     <div class="homescreen-hint" id="homescreen-hint">📱 Add to Home Screen for the best experience</div>
     <button class="reset-progress" id="btn-reset">Reset Progress</button>
-    <div class="version-label">v1.4</div>
+    <div class="version-label">v1.5</div>
   </div>
 
   <!-- ===== TUTORIAL SCREEN ===== -->
@@ -4115,7 +4115,7 @@
     onTap(btnShopLevels, () => openShop('level-select'));
     onTap(btnLevelsBack, () => showScreen('title'));
     onTap(btnPreLevelBack, () => { renderLevelSelect(); showScreen('level-select'); });
-    onTap(btnStartLevel, () => startCountdown());
+    onTap(btnStartLevel, () => { if (btnStartLevel.disabled) return; startCountdown(); });
     let resetConfirmTimeout = null;
     let resetConfirmActive = false;
     onTap(btnReset, () => {
