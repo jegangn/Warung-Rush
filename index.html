@@ -32,7 +32,7 @@
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
-      touch-action: none;
+      touch-action: manipulation;
     }
     html, body {
       width: 100%; height: 100%;
@@ -193,6 +193,10 @@
       padding: 20px;
       gap: 16px;
       background: #1a0e0a;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
     .level-select-header {
       font-family: 'Fredoka', sans-serif;
@@ -247,6 +251,7 @@
       padding: 20px;
       gap: 16px;
       background: #1a0e0a;
+      touch-action: pan-y;
     }
     .shop-header {
       font-family: 'Fredoka', sans-serif;
@@ -511,6 +516,7 @@
       flex-direction: row;
       background: #1a0e0a;
       position: relative;
+      touch-action: manipulation;
     }
 
     /* ===== HUD ===== */
@@ -1704,6 +1710,9 @@
       gap: 12px;
       max-height: 80vh;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
       padding: 16px;
     }
     .menu-select-title {
@@ -3487,15 +3496,19 @@
     let saveData = SaveManager.load();
 
     // ===== UNIVERSAL TAP HANDLER =====
-    // Adds both click and touchend listeners to fix mobile browsers
-    // where touch-action:none suppresses click events.
-    function addTap(el, handler, opts) {
+    // Handles both touch and click, ignoring swipe/scroll gestures.
+    function onTap(el, handler, opts) {
       if (!el) return;
-      el.addEventListener('click', handler, opts);
+      let touchMoved = false;
+      el.addEventListener('touchstart', () => { touchMoved = false; }, { passive: true });
+      el.addEventListener('touchmove', () => { touchMoved = true; }, { passive: true });
       el.addEventListener('touchend', function(e) {
-        e.preventDefault(); // prevent ghost double-fire
-        handler.call(this, e);
+        if (!touchMoved) {
+          e.preventDefault();
+          handler.call(this, e);
+        }
       }, opts);
+      el.addEventListener('click', handler, opts);
     }
 
     // ===== SCREEN STATE MACHINE =====
@@ -3949,7 +3962,7 @@
         }
         card.innerHTML = `<div class="level-card-number">${i + 1}</div><div class="level-card-name">${lvl.name}</div><div class="level-card-medal">${MEDAL_EMOJIS[medalIdx]}</div>${lockInfo}`;
         if (unlocked) {
-          addTap(card, () => {
+          onTap(card, () => {
             showPreLevel(i + 1);
           });
         } else {
@@ -3958,7 +3971,7 @@
           // Shop link on tier-locked levels
           const shopLink = card.querySelector('[data-shop-link]');
           if (shopLink) {
-            addTap(shopLink, (e) => {
+            onTap(shopLink, (e) => {
               e.stopPropagation();
               openShop('level-select');
             });
@@ -4015,7 +4028,7 @@
         tile.dataset.dishId = dish.id;
         const typeIcon = dish.cookType === 'instant' ? '⚡' : dish.cookType === 'cook' ? '🔥' : dish.cookType === 'custom' ? '📋' : '📋🔥';
         tile.innerHTML = `<div class="menu-dish-tile-badge">${typeIcon}</div><div class="menu-dish-tile-emoji">${dish.emoji}</div><div class="menu-dish-tile-name">${dish.name}</div>`;
-        addTap(tile, () => toggleDishSelection(dish, tile));
+        onTap(tile, () => toggleDishSelection(dish, tile));
         grid.appendChild(tile);
       });
 
@@ -4064,7 +4077,7 @@
     }
 
     // ===== NAVIGATION =====
-    addTap(btnStart, () => {
+    onTap(btnStart, () => {
       // First launch: go to tutorial
       if (!saveData.tutorialCompleted) {
         startTutorial();
@@ -4073,28 +4086,28 @@
       renderLevelSelect();
       showScreen('level-select');
     });
-    addTap(btnShopTitle, () => openShop('title'));
-    addTap(btnHowToPlay, () => startTutorial());
-    addTap(btnTutorialNext, () => { renderLevelSelect(); showScreen('level-select'); });
-    addTap(btnTutorialSkip, () => {
+    onTap(btnShopTitle, () => openShop('title'));
+    onTap(btnHowToPlay, () => startTutorial());
+    onTap(btnTutorialNext, () => { renderLevelSelect(); showScreen('level-select'); });
+    onTap(btnTutorialSkip, () => {
       saveData.tutorialCompleted = true;
       SaveManager.save(saveData);
       renderLevelSelect();
       showScreen('level-select');
     });
-    addTap(btnShopBack, () => {
+    onTap(btnShopBack, () => {
       if (shopPreviousScreen === 'level-select') {
         renderLevelSelect();
       }
       showScreen(shopPreviousScreen);
     });
-    addTap(btnShopLevels, () => openShop('level-select'));
-    addTap(btnLevelsBack, () => showScreen('title'));
-    addTap(btnPreLevelBack, () => { renderLevelSelect(); showScreen('level-select'); });
-    addTap(btnStartLevel, () => startCountdown());
+    onTap(btnShopLevels, () => openShop('level-select'));
+    onTap(btnLevelsBack, () => showScreen('title'));
+    onTap(btnPreLevelBack, () => { renderLevelSelect(); showScreen('level-select'); });
+    onTap(btnStartLevel, () => startCountdown());
     let resetConfirmTimeout = null;
     let resetConfirmActive = false;
-    addTap(btnReset, () => {
+    onTap(btnReset, () => {
       if (resetConfirmActive) {
         // Second tap within 3s — reset
         SaveManager.reset();
@@ -4112,14 +4125,14 @@
     });
 
     // Mute
-    addTap(btnMute, () => AudioManager.toggle());
+    onTap(btnMute, () => AudioManager.toggle());
     // Init mute button state
     btnMute.textContent = saveData.settings.soundEnabled ? '🔊' : '🔇';
 
     // Pause
-    addTap(btnPause, () => pauseGame());
-    addTap(btnResume, () => resumeGame());
-    addTap(btnQuit, () => {
+    onTap(btnPause, () => pauseGame());
+    onTap(btnResume, () => resumeGame());
+    onTap(btnQuit, () => {
       resumeGame();
       cleanupLevel();
       renderLevelSelect();
@@ -4127,8 +4140,8 @@
     });
 
     // Results
-    addTap(btnResultsRetry, () => startCountdown());
-    addTap(btnResultsMenu, () => showScreen('title'));
+    onTap(btnResultsRetry, () => startCountdown());
+    onTap(btnResultsMenu, () => showScreen('title'));
 
     // ===== HOMESCREEN HINT =====
     if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
@@ -4645,7 +4658,7 @@
             ${autoServeHtml}
           `;
 
-          addTap(card, (e) => {
+          onTap(card, (e) => {
             if (e.target.classList.contains('auto-serve-btn')) {
               const holdIdx = parseInt(e.target.dataset.holdingIdx);
               const oid = parseInt(e.target.dataset.orderId);
@@ -4823,7 +4836,7 @@
         btn.className = 'ingredient-btn';
         btn.innerHTML = `<div class="ingredient-btn-emoji">${step.emoji}</div><div class="ingredient-btn-label">${step.label}</div>`;
 
-        addTap(btn, () => {
+        onTap(btn, () => {
           handleIngredientTap(order.id, step, btn);
         });
 
@@ -4971,7 +4984,7 @@
         const btn = document.createElement('button');
         btn.className = 'ingredient-btn';
         btn.innerHTML = `<div class="ingredient-btn-emoji">${currentBuildStep.emoji}</div><div class="ingredient-btn-label">${currentBuildStep.label}</div>`;
-        addTap(btn, () => handleIngredientTap(order.id, currentBuildStep, btn));
+        onTap(btn, () => handleIngredientTap(order.id, currentBuildStep, btn));
         ingredientGrid.appendChild(btn);
       } else {
         // Choice step: show ALL options from the matching customSlot
@@ -4985,14 +4998,14 @@
               const btn = document.createElement('button');
               btn.className = 'ingredient-btn';
               btn.innerHTML = `<div class="ingredient-btn-emoji">${opt.emoji}</div><div class="ingredient-btn-label">${opt.label}</div>`;
-              addTap(btn, () => handleIngredientTap(order.id, opt, btn));
+              onTap(btn, () => handleIngredientTap(order.id, opt, btn));
               ingredientGrid.appendChild(btn);
             });
             // Add SKIP button
             const skipBtn = document.createElement('button');
             skipBtn.className = 'skip-btn';
             skipBtn.innerHTML = `<div class="skip-btn-emoji">⏭</div><div class="skip-btn-label">SKIP</div>`;
-            addTap(skipBtn, () => handleIngredientTap(order.id, {emoji:'❌', label: currentBuildStep.label, modifier:'SKIP', type:'choice', slotName}, skipBtn));
+            onTap(skipBtn, () => handleIngredientTap(order.id, {emoji:'❌', label: currentBuildStep.label, modifier:'SKIP', type:'choice', slotName}, skipBtn));
             ingredientGrid.appendChild(skipBtn);
           } else {
             // Show all non-SKIP options (and SKIP button if a SKIP option exists)
@@ -5006,14 +5019,14 @@
                 displayLabel = `${order.extraTapCount}/2`;
               }
               btn.innerHTML = `<div class="ingredient-btn-emoji">${opt.emoji}</div><div class="ingredient-btn-label">${displayLabel}</div>`;
-              addTap(btn, () => handleIngredientTap(order.id, opt, btn));
+              onTap(btn, () => handleIngredientTap(order.id, opt, btn));
               ingredientGrid.appendChild(btn);
             });
             if (hasSkip) {
               const skipBtn = document.createElement('button');
               skipBtn.className = 'skip-btn';
               skipBtn.innerHTML = `<div class="skip-btn-emoji">⏭</div><div class="skip-btn-label">SKIP</div>`;
-              addTap(skipBtn, () => handleIngredientTap(order.id, {emoji:'❌', label:'No ' + slotName.toLowerCase(), modifier:'SKIP', type:'choice', slotName}, skipBtn));
+              onTap(skipBtn, () => handleIngredientTap(order.id, {emoji:'❌', label:'No ' + slotName.toLowerCase(), modifier:'SKIP', type:'choice', slotName}, skipBtn));
               ingredientGrid.appendChild(skipBtn);
             }
           }
@@ -5244,7 +5257,7 @@
       updateHUD();
     }
 
-    addTap(btnServe, () => {
+    onTap(btnServe, () => {
       const order = gameState.activeOrders.find(o => o.id === gameState.selectedOrderId);
       if (!order) return;
 
@@ -5270,7 +5283,7 @@
     });
 
     // ===== START COOKING BUTTON =====
-    addTap(btnStartCooking, () => {
+    onTap(btnStartCooking, () => {
       if (btnStartCooking.classList.contains('disabled')) {
         const centreRect = playCentre.getBoundingClientRect();
         const playRect = document.getElementById('screen-playing').getBoundingClientRect();
@@ -5440,15 +5453,15 @@
             <button class="cooking-slot-pull disabled" data-slot="${i}">Not ready</button>
             <button class="cooking-slot-trash" data-slot="${i}">🗑️</button>
           `;
-          addTap(el.querySelector('.cooking-slot-pull'), (e) => {
+          onTap(el.querySelector('.cooking-slot-pull'), (e) => {
             e.stopPropagation();
             pullFromCooking(parseInt(e.target.dataset.slot));
           });
-          addTap(el.querySelector('.cooking-slot-trash'), (e) => {
+          onTap(el.querySelector('.cooking-slot-trash'), (e) => {
             e.stopPropagation();
             trashCookingSlot(parseInt(e.target.dataset.slot));
           });
-          addTap(el, () => {
+          onTap(el, () => {
             // Toggle trash button visibility
             slot.showTrash = !slot.showTrash;
             el.classList.toggle('show-trash', slot.showTrash);
@@ -5481,7 +5494,7 @@
     }
 
     // ===== TRASH MECHANIC =====
-    addTap(btnTrash, () => {
+    onTap(btnTrash, () => {
       const order = gameState.activeOrders.find(o => o.id === gameState.selectedOrderId);
       if (!order) return;
 
@@ -5546,7 +5559,7 @@
           el.className = 'holding-slot empty';
           el.innerHTML = '<div class="holding-slot-label">+ PREP</div>';
           el.dataset.slotIdx = i;
-          addTap(el, (e) => {
+          onTap(el, (e) => {
             openHoldingMiniMenu(parseInt(el.dataset.slotIdx), el);
           });
           holdingArea.appendChild(el);
@@ -5577,7 +5590,7 @@
         const item = document.createElement('div');
         item.className = 'holding-mini-item';
         item.innerHTML = `${dish.emoji} ${dish.name}`;
-        addTap(item, (e) => {
+        onTap(item, (e) => {
           e.stopPropagation();
           startHoldingPrep(slotIdx, dish);
           closeHoldingMiniMenu();
@@ -5992,7 +6005,7 @@
       });
       content.innerHTML = html;
       content.querySelectorAll('.tier-card-btn').forEach(btn => {
-        addTap(btn, () => purchaseTier(parseInt(btn.dataset.tier), parseInt(btn.dataset.cost)));
+        onTap(btn, () => purchaseTier(parseInt(btn.dataset.tier), parseInt(btn.dataset.cost)));
       });
     }
 
@@ -6025,7 +6038,7 @@
       });
       content.innerHTML = html;
       content.querySelectorAll('.upgrade-card-btn').forEach(btn => {
-        addTap(btn, () => purchaseUpgrade(btn.dataset.upgId, parseInt(btn.dataset.cost)));
+        onTap(btn, () => purchaseUpgrade(btn.dataset.upgId, parseInt(btn.dataset.cost)));
       });
     }
 
@@ -6055,7 +6068,7 @@
 
     // Shop tab switching
     document.querySelectorAll('.shop-tab:not(.disabled)').forEach(tab => {
-      addTap(tab, () => {
+      onTap(tab, () => {
         activeShopTab = tab.dataset.shopTab;
         renderShop();
       });
@@ -6242,7 +6255,7 @@
       btn.className = 'hazard-fix-btn';
       btn.id = 'hazard-fix-' + hazard.type;
       btn.innerHTML = '🔧<span>FIX</span>';
-      addTap(btn, (e) => {
+      onTap(btn, (e) => {
         e.stopPropagation();
         openFixOverlay(hazard);
       });
@@ -6265,7 +6278,7 @@
         btn.className = 'fix-step-btn';
         btn.textContent = emoji;
         if (idx === 0) btn.classList.add('active');
-        addTap(btn, (e) => {
+        onTap(btn, (e) => {
           e.stopPropagation();
           if (lockout) return;
           if (idx === currentStep) {
@@ -6535,7 +6548,7 @@
             </div>
           </div>
         `;
-        addTap(document.getElementById('btn-tut-start'), () => {
+        onTap(document.getElementById('btn-tut-start'), () => {
           tutorialActive = false;
           tutorialStep = 0;
           overlay.innerHTML = '';
