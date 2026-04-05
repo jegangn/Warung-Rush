@@ -2027,7 +2027,7 @@
     <button class="btn-text" id="btn-how-to-play">HOW TO PLAY</button>
     <div class="homescreen-hint" id="homescreen-hint">📱 Add to Home Screen for the best experience</div>
     <button class="reset-progress" id="btn-reset">Reset Progress</button>
-    <div class="version-label">v1.5</div>
+    <div class="version-label">v1.6</div>
   </div>
 
   <!-- ===== TUTORIAL SCREEN ===== -->
@@ -6469,19 +6469,23 @@
           <div class="tutorial-float-text" id="tut-text-1">Tap the order to start cooking</div>
           <div class="tutorial-arrow" id="tut-arrow-1">👇</div>
         `;
-        const tutCard = document.getElementById('order-card-' + order.id);
-        const tutArrow = document.getElementById('tut-arrow-1');
-        const tutText = document.getElementById('tut-text-1');
-        if (tutCard && tutArrow) {
-          const overlayRect = overlay.getBoundingClientRect();
-          const cardRect = tutCard.getBoundingClientRect();
-          const cardCenterX = cardRect.left - overlayRect.left + cardRect.width / 2;
-          tutArrow.style.left = (cardCenterX - 18) + 'px';
-          tutArrow.style.top = (cardRect.bottom - overlayRect.top + 4) + 'px';
-          if (tutText) {
-            tutText.style.top = (cardRect.top - overlayRect.top - 40) + 'px';
+        requestAnimationFrame(() => {
+          const tutCard = document.getElementById('order-card-' + order.id);
+          const tutArrow = document.getElementById('tut-arrow-1');
+          const tutText = document.getElementById('tut-text-1');
+          if (tutCard && tutArrow) {
+            const overlayRect = overlay.getBoundingClientRect();
+            const cardRect = tutCard.getBoundingClientRect();
+            const cardCenterX = cardRect.left - overlayRect.left + cardRect.width / 2;
+            tutArrow.style.left = (cardCenterX - 18) + 'px';
+            tutArrow.style.top = (cardRect.bottom - overlayRect.top + 4) + 'px';
+            if (tutText) {
+              tutText.style.left = cardCenterX + 'px';
+              tutText.style.transform = 'translateX(-50%)';
+              tutText.style.top = (cardRect.top - overlayRect.top - 40) + 'px';
+            }
           }
-        }
+        });
 
         // Wait for order tap
         const checkTap = setInterval(() => {
